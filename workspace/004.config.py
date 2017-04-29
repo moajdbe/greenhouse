@@ -39,6 +39,10 @@ def moistureCheck(key):
 	#print '{s}: {b}'.format(key,s)
 	print key+":\t",s
 
+def enqueueEvent(key,callback):
+	#add tuple to end of array
+	QUEUE.append( (key,callback) )
+
 
 def setup():
 	for key in PICONFIG:
@@ -53,7 +57,11 @@ def eventLoop():
 		while True:
 			for key in PICONFIG:
 				#print key
-				PICONFIG[key]['callback'](key)
+				p = PICONFIG[key]
+				if p['callback'] is not None:
+					p['callback'](key)
+
+			#do queue work here
 
 			print '======================================'
 			time.sleep( FREQUENCY )
@@ -71,6 +79,9 @@ PICONFIG=collections.OrderedDict(
 	(	'moist3',	{	'io':22,	'output':False,	'callback':moistureCheck	}	)
 ]
 )
+
+QUEUE=[]
+
 
 setup()
 eventLoop()
