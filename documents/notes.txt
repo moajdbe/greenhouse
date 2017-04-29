@@ -1,0 +1,16 @@
+
+
+TEMPTERATURE SENSOR:
+
+http://www.circuitbasics.com/how-to-set-up-the-dht11-humidity-sensor-on-the-raspberry-pi/
+
+git clone https://github.com/adafruit/Adafruit_Python_DHT.git
+sudo apt-get install build-essential python-dev
+sudo python setup.py install
+
+
+
+
+
+
+

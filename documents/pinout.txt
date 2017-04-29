@@ -1,0 +1,23 @@
+
+
+		3V	01	02	5V
+temp/humid	GPIO2	03	04	5V
+LED		GPIO3	05	06	ground
+		GPIO4	07	08	GPIO14	pump
+		ground	09	10	GPIO15
+moist1		GPIO17	11	12	GPIO18	valve1
+moist2		GPIO27	13	14	ground	valve2
+moist3		GPIO22	15	16	GPIO23	valve3	
+		3V	17	18	GPIO24	valve4
+moist4		GPIO10	19	20	ground
+moist5		GPIO09	21	22	GPIO25	valve5
+moist6		GPIO11	23	24	GPIO8	valve6
+		ground	25	26	GPIO7	valve7
+moist7		GPIO0	27	28	GPIO1	valve8
+moist8		GPIO5	29	30	ground
+moist9		GPIO6	31	32	GPIO12	valve9
+moist10		GPIO13	33	34	ground
+		GPIO19	35	36	GPIO16	valve10
+		GPIO26	37	38	GPIO20
+		ground	39	40	GPIO21
+
