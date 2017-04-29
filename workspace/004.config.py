@@ -1,9 +1,11 @@
+#!/usr/bin/python
 
 import RPi.GPIO as GPIO
 import Adafruit_DHT
 import time
 import signal
 import sys
+import collections
 
 def signal_handler(signal, frame):
 	print('Exiting')
@@ -21,13 +23,13 @@ def ledToggle(key):
 	p = PICONFIG[key]
 	ledToggle.state = not ledToggle.state
 	GPIO.output( p['io'], ledToggle.state )
-	print key+": ",ledToggle.state
+	print key+":\t",ledToggle.state
 
 def temperatureCheck(key):
 	try:
 		p = PICONFIG[key]
 		humidity, temperature = Adafruit_DHT.read_retry(11, p['io'])
-		print key+": ",'Temp: {0:0.1f} C  Humidity: {1:0.1f} %'.format(temperature, humidity)
+		print key+":\t",'Temp: {0:0.1f} C  Humidity: {1:0.1f} %'.format(temperature, humidity)
 	except:
 		print 'Bad input from the temp sensor'
 
@@ -35,7 +37,7 @@ def moistureCheck(key):
 	p = PICONFIG[key]
 	s=GPIO.input( p['io'] )
 	#print '{s}: {b}'.format(key,s)
-	print key+": ",s
+	print key+":\t",s
 
 
 def setup():
@@ -53,19 +55,22 @@ def eventLoop():
 				#print key
 				PICONFIG[key]['callback'](key)
 
+			print '======================================'
 			time.sleep( FREQUENCY )
 	except:
 		print 'An exception occurred'
 
 FREQUENCY=1
 
-PICONFIG={
-	'temp':		{	'io':2,		'output':None,	'callback':temperatureCheck	},
-	'led':		{	'io':3,		'output':True,	'callback':ledToggle		},
-	'moist1':	{	'io':17,	'output':False,	'callback':moistureCheck	},
-	'moist2':	{	'io':27,	'output':False,	'callback':moistureCheck	},
-	'moist3':	{	'io':22,	'output':False,	'callback':moistureCheck	}
-}
+PICONFIG=collections.OrderedDict(
+[
+	(	'temp',		{	'io':2,		'output':None,	'callback':temperatureCheck	}	),
+	(	'led',		{	'io':3,		'output':True,	'callback':ledToggle		}	),
+	(	'moist1',	{	'io':17,	'output':False,	'callback':moistureCheck	}	),
+	(	'moist2',	{	'io':27,	'output':False,	'callback':moistureCheck	}	),
+	(	'moist3',	{	'io':22,	'output':False,	'callback':moistureCheck	}	)
+]
+)
 
 setup()
 eventLoop()
