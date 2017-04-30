@@ -128,7 +128,7 @@ QUEUE=[]		#queue of valves to open
 CURRENTVALVE=None	#currently open valve
 VALVECLOSE=0		#time in future when valve will close (and get next item in queue)
 #VALVETIME=60*1		#number of seconds to keep a valve open
-VALVETIME=2		#number of seconds to keep a valve open
+VALVETIME=1		#number of seconds to keep a valve open
 
 MOIST=1			#logical defines
 DRY=0
