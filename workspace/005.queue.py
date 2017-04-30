@@ -18,7 +18,7 @@ signal.signal(signal.SIGINT, signal_handler)
 
 LEDSTATES={
 	"led1":False,
-	"led2":True
+	"led2":False
 }
 
 def ledToggle(key):
@@ -41,6 +41,13 @@ def moistureCheck(key):
 	p = PICONFIG[key]
 	s=GPIO.input( p['io'] )
 	#print '{s}: {b}'.format(key,s)
+	print key+":\t",s
+
+
+def pumpCheck(key):
+	p = PICONFIG[key]
+	s = CURRENTVALVE is not None
+	GPIO.output( p['io'], s )
 	print key+":\t",s
 
 
@@ -68,27 +75,29 @@ def eventLoop():
 					p['callback'](key)
 
 			#do queue work here
+			#if len(QUEUE
 
 			print '======================================'
 			time.sleep( FREQUENCY )
 	#except:
 	#	print 'An exception occurred'
 
-FREQUENCY=5
+FREQUENCY=10
 
 PICONFIG=collections.OrderedDict(
 [
-	(	'temp',		{	'io':2,		'output':None,	'callback':temperatureCheck	}	),
-	(	'led1',		{	'io':3,		'output':True,	'callback':ledToggle		}	),
-	(	'led2',		{	'io':4,		'output':True,	'callback':ledToggle		}	),
-	(	'moist1',	{	'io':17,	'output':False,	'callback':moistureCheck	}	),
-	(	'moist2',	{	'io':27,	'output':False,	'callback':moistureCheck	}	),
-	(	'moist3',	{	'io':22,	'output':False,	'callback':moistureCheck	}	)
+	(	'temp',		{	'io':2,		'output':None,	'callback':temperatureCheck				}	),
+	(	'led1',		{	'io':3,		'output':True,	'callback':ledToggle					}	),
+	(	'led2',		{	'io':4,		'output':True,	'callback':ledToggle					}	),
+	(	'pump',		{	'io':14,	'output':True,	'callback':pumpCheck					}	),
+	(	'moist1',	{	'io':17,	'output':False,	'callback':moistureCheck,	'valve':'valve1'	}	),
+	(	'moist2',	{	'io':27,	'output':False,	'callback':moistureCheck,	'valve':'valve2'	}	),
+	(	'moist3',	{	'io':22,	'output':False,	'callback':moistureCheck,	'valve':'valve3'	}	)
 ]
 )
 
 QUEUE=[]
-
+CURRENTVALVE=None
 
 setup()
 eventLoop()
