@@ -80,18 +80,19 @@ def eventLoop():
 			t = time.time()
 
 			#do queue work here
-			if len(QUEUE):
-				if CURRENTVALVE is None:
-					CURRENTVALVE = QUEUE.pop(0)
-					print "Opening valve: ",CURRENTVALVE
-					VALVECLOSE = t + VALVETIME
-
 			if CURRENTVALVE is not None:
 				if t > VALVECLOSE:
 					print "Closing valve: ",CURRENTVALVE
 					CURRENTVALVE = None
 					VALVECLOSE = 0
 
+			if len(QUEUE):
+				if CURRENTVALVE is None:
+					CURRENTVALVE = QUEUE.pop(0)
+					print "Opening valve: ",CURRENTVALVE
+					VALVECLOSE = t + VALVETIME
+
+			#callback functions
 			for key in PICONFIG:
 				#print key
 				p = PICONFIG[key]
