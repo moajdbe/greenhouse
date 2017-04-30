@@ -18,7 +18,7 @@ signal.signal(signal.SIGINT, signal_handler)
 
 LEDSTATES={
 	"led1":False,
-	"led2":False
+	"led2":True
 }
 
 def ledToggle(key):
@@ -39,8 +39,13 @@ def temperatureCheck(key):
 
 def moistureCheck(key):
 	p = PICONFIG[key]
+	v = p['valve']
 	s=GPIO.input( p['io'] )
 	#print '{s}: {b}'.format(key,s)
+	if s is MOIST:
+		if v not in QUEUE:
+			#print "ENQUEUE: ",v
+			QUEUE.append( v )
 	print key+":\t",s
 
 
@@ -51,9 +56,11 @@ def pumpCheck(key):
 	print key+":\t",s
 
 
-def enqueueEvent(key,callback):
-	#add tuple to end of array
-	QUEUE.append( (key,callback) )
+def valveCheck(key):
+	p = PICONFIG[key]
+	s = (key == CURRENTVALVE)
+	GPIO.output( p['io'], s )
+	print key+":\t",s
 
 
 def setup():
@@ -67,37 +74,63 @@ def setup():
 
 def eventLoop():
 	#try:
+		global CURRENTVALVE, VALVETIME
 		while True:
+
+			t = time.time()
+
+			#do queue work here
+			if len(QUEUE):
+				if CURRENTVALVE is None:
+					CURRENTVALVE = QUEUE.pop(0)
+					print "Opening valve: ",CURRENTVALVE
+					VALVECLOSE = t + VALVETIME
+
+			if CURRENTVALVE is not None:
+				if t > VALVECLOSE:
+					print "Closing valve: ",CURRENTVALVE
+					CURRENTVALVE = None
+					VALVECLOSE = 0
+
 			for key in PICONFIG:
 				#print key
 				p = PICONFIG[key]
 				if p['callback'] is not None:
 					p['callback'](key)
 
-			#do queue work here
-			#if len(QUEUE
-
+			print '======================================'
+			print QUEUE
+			print "Current valve: ",CURRENTVALVE
 			print '======================================'
 			time.sleep( FREQUENCY )
 	#except:
 	#	print 'An exception occurred'
 
-FREQUENCY=10
 
 PICONFIG=collections.OrderedDict(
 [
-	(	'temp',		{	'io':2,		'output':None,	'callback':temperatureCheck				}	),
+#	(	'temp',		{	'io':2,		'output':None,	'callback':temperatureCheck				}	),
 	(	'led1',		{	'io':3,		'output':True,	'callback':ledToggle					}	),
 	(	'led2',		{	'io':4,		'output':True,	'callback':ledToggle					}	),
-	(	'pump',		{	'io':14,	'output':True,	'callback':pumpCheck					}	),
 	(	'moist1',	{	'io':17,	'output':False,	'callback':moistureCheck,	'valve':'valve1'	}	),
 	(	'moist2',	{	'io':27,	'output':False,	'callback':moistureCheck,	'valve':'valve2'	}	),
-	(	'moist3',	{	'io':22,	'output':False,	'callback':moistureCheck,	'valve':'valve3'	}	)
+	(	'moist3',	{	'io':22,	'output':False,	'callback':moistureCheck,	'valve':'valve3'	}	),
+	(	'valve1',	{	'io':15,	'output':True,	'callback':valveCheck					}	),
+	(	'valve2',	{	'io':18,	'output':True,	'callback':valveCheck					}	),
+	(	'valve3',	{	'io':23,	'output':True,	'callback':valveCheck					}	),
+	(	'pump',		{	'io':14,	'output':True,	'callback':pumpCheck					}	)
 ]
 )
 
-QUEUE=[]
-CURRENTVALVE=None
+FREQUENCY=1		#event queue time to sleep
+QUEUE=[]		#queue of valves to open
+CURRENTVALVE=None	#currently open valve
+VALVECLOSE=0		#time in future when valve will close (and get next item in queue)
+#VALVETIME=60*1		#number of seconds to keep a valve open
+VALVETIME=2		#number of seconds to keep a valve open
+
+MOIST=1			#logical defines
+DRY=0
 
 setup()
 eventLoop()
