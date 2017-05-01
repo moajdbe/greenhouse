@@ -12,10 +12,17 @@ def signal_handler(signal, frame):
 	GPIO.cleanup()
         sys.exit(0)
 
+#add more signal handlers here!
 signal.signal(signal.SIGINT, signal_handler)
 
 
 
+########################
+# callbacks per module #
+########################
+
+# because these are different values, the LEDs will shift back and forth
+# if they were the same, both would blink together
 LEDSTATES={
 	"led1":False,
 	"led2":True
@@ -62,7 +69,12 @@ def valveCheck(key):
 	GPIO.output( p['io'], s )
 	print key+":\t",s
 
+########################
+# end callbacks        #
+########################
 
+
+#setup the GPIO channels as input or output.  Temperature is an exception because the Adafruit library takes care of it
 def setup():
 	GPIO.setmode(GPIO.BCM)
 	for key in PICONFIG:
@@ -70,29 +82,33 @@ def setup():
 			GPIO.setup(PICONFIG[key]['io'],GPIO.OUT)
 		if PICONFIG[key]['output'] is False:
 			GPIO.setup(PICONFIG[key]['io'],GPIO.IN)
-		#skip if 'output' is None
+		#skip if 'output' is None, like temperature
 
+
+#each module's callback is executed per event loop
+#the callbacks reference the global variables, in the style of C (not C++)
 def eventLoop():
-	#try:
+	#try:		#the exception should be uncommented, but it makes it harder to debug
 		global CURRENTVALVE, VALVETIME
 		while True:
 
 			t = time.time()
 
-			#do queue work here
+			#check if we need to close a valve
 			if CURRENTVALVE is not None:
 				if t > VALVECLOSE:
 					print "Closing valve: ",CURRENTVALVE
 					CURRENTVALVE = None
 					VALVECLOSE = 0
 
+			#check the queue for more work
 			if len(QUEUE):
 				if CURRENTVALVE is None:
 					CURRENTVALVE = QUEUE.pop(0)
 					print "Opening valve: ",CURRENTVALVE
 					VALVECLOSE = t + VALVETIME
 
-			#callback functions
+			#run the callbacks
 			for key in PICONFIG:
 				#print key
 				p = PICONFIG[key]
@@ -108,6 +124,9 @@ def eventLoop():
 	#	print 'An exception occurred'
 
 
+#any module can be commented out to get rid of it
+#the modules work by name/key
+#it must be an OrderedDict because the order matters... pump should be last in the chain.  A normal dict does not respect order.
 PICONFIG=collections.OrderedDict(
 [
 #	(	'temp',		{	'io':2,		'output':None,	'callback':temperatureCheck				}	),
@@ -131,7 +150,7 @@ VALVECLOSE=0		#time in future when valve will close (and get next item in queue)
 VALVETIME=1		#number of seconds to keep a valve open
 
 MOIST=1			#logical defines
-DRY=0
+DRY=0			#DRY is unused, but may be useful in the future
 
 setup()
 eventLoop()
